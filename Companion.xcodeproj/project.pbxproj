@@ -9,6 +9,7 @@
 /* Begin PBXBuildFile section */
 		9294B1970FF4EE0287A3CF0C /* libPods-Companion.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 093B16A8B00EA66885C44BCB /* libPods-Companion.a */; };
 		A51D6D0320827CF4001E6FF4 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51D6D0220827CF4001E6FF4 /* BaseViewController.swift */; };
+		A53A40F7210817C500A75A4B /* Constants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53A40F6210817C500A75A4B /* Constants.swift */; };
 		A56B5B75209190F500132FDE /* TrackingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56B5B74209190F500132FDE /* TrackingViewController.swift */; };
 		A573BFF220809AAF0064A7DE /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = A573BFF120809AAF0064A7DE /* Base.swift */; };
 		A5A84FF420807F7400823195 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A84FF320807F7400823195 /* AppDelegate.swift */; };
@@ -36,6 +37,7 @@
 		093B16A8B00EA66885C44BCB /* libPods-Companion.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Companion.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		6735E4DFA35FE23A8249890A /* Pods-Companion.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Companion.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Companion/Pods-Companion.debug.xcconfig"; sourceTree = "<group>"; };
 		A51D6D0220827CF4001E6FF4 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
+		A53A40F6210817C500A75A4B /* Constants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Constants.swift; sourceTree = "<group>"; };
 		A56B5B74209190F500132FDE /* TrackingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingViewController.swift; sourceTree = "<group>"; };
 		A573BFF120809AAF0064A7DE /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		A5A84FF020807F7400823195 /* Companion.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Companion.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -88,6 +90,14 @@
 			name = Pods;
 			sourceTree = "<group>";
 		};
+		A53A40F5210817AB00A75A4B /* Constants */ = {
+			isa = PBXGroup;
+			children = (
+				A53A40F6210817C500A75A4B /* Constants.swift */,
+			);
+			path = Constants;
+			sourceTree = "<group>";
+		};
 		A5A84FE720807F7400823195 = {
 			isa = PBXGroup;
 			children = (
@@ -112,6 +122,7 @@
 		A5A84FF220807F7400823195 /* Companion */ = {
 			isa = PBXGroup;
 			children = (
+				A53A40F5210817AB00A75A4B /* Constants */,
 				A5A84FF320807F7400823195 /* AppDelegate.swift */,
 				A5A84FF520807F7400823195 /* ViewController.swift */,
 				A5BBBC822088561C00F9C4F7 /* UserAuthViewController.swift */,
@@ -282,6 +293,7 @@
 				A573BFF220809AAF0064A7DE /* Base.swift in Sources */,
 				A5A84FF620807F7400823195 /* ViewController.swift in Sources */,
 				A56B5B75209190F500132FDE /* TrackingViewController.swift in Sources */,
+				A53A40F7210817C500A75A4B /* Constants.swift in Sources */,
 				A5A84FF420807F7400823195 /* AppDelegate.swift in Sources */,
 				A5BBBC832088561C00F9C4F7 /* UserAuthViewController.swift in Sources */,
 			);

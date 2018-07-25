@@ -29,8 +29,8 @@ class UserAuthViewController: UIViewController {
     var expires_in: Int?
     
     // UNSAFE
-    let client_id: String = "place client_id"
-    let client_secret: String = "place client_secret"
+    let client_id: String = st_client_id
+    let client_secret: String = st_client_secret
     let redirect_uri: String = "companion://oauth"
     
     override func viewDidLoad() {

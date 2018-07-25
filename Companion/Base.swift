@@ -42,7 +42,7 @@ class Base: NSObject {
     func getDuration(originLat: Double, originLong: Double, completion: @escaping (MapsResponse.Routes.Legs.Duration) -> Void) {
         var duration: MapsResponse.Routes.Legs.Duration?
         var requestURL = ""
-        let key = "place Directions API key here"
+        let key = google_api_key
         if !((self.placeID?.isEmpty)!) { // use placeID
             requestURL = "https://maps.googleapis.com/maps/api/directions/json?origin=" + String(originLat) + "," + String(originLong) + "&destination=place_id:" + (self.placeID!) + "&key=" + key
         } else { // use actual address

@@ -222,8 +222,8 @@ class TrackingViewController: UIViewController {
         }
         let params = [
             "grant_type": "refresh_token",
-            "client_id": "place client_id",
-            "client_secret": "place client_secret",
+            "client_id": st_client_id,
+            "client_secret": st_client_secret,
             "refresh_token": refresh_token
         ]
         let accessTokenRequest = try? JSONSerialization.data(withJSONObject: params, options: [])
