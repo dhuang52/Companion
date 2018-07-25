@@ -1,0 +1,6 @@
+module Pods_Companion [system] {
+  umbrella header "Pods-Companion-umbrella.h"
+
+  export *
+  module * { export * }
+}

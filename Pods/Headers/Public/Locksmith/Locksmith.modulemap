@@ -1,0 +1,6 @@
+module Locksmith [system] {
+  umbrella header "Locksmith-umbrella.h"
+
+  export *
+  module * { export * }
+}

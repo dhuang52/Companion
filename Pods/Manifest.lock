@@ -1,0 +1,24 @@
+PODS:
+  - GoogleMaps/Base (2.6.0)
+  - GooglePlaces (2.6.0):
+    - GoogleMaps/Base (= 2.6.0)
+  - Locksmith (4.0.0)
+
+DEPENDENCIES:
+  - GooglePlaces
+  - Locksmith
+
+SPEC REPOS:
+  https://github.com/CocoaPods/Specs.git:
+    - GoogleMaps
+    - GooglePlaces
+    - Locksmith
+
+SPEC CHECKSUMS:
+  GoogleMaps: 42f91c68b7fa2f84d5c86597b18ceb99f5414c7f
+  GooglePlaces: f6ddf33b75cef69e888907d9947c57198ed845f3
+  Locksmith: e9bebbaaa4cee3c511bc358a44f843c3fe00e21f
+
+PODFILE CHECKSUM: 04a9dc2ad1214d453b6e166e8a943c9e9db47b4b
+
+COCOAPODS: 1.5.0
