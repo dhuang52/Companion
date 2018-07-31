@@ -29,24 +29,24 @@ class UserAuthViewController: UIViewController {
     var refresh_token: String?
     var expires_in: Int?
     
-    // UNSAFE
-    let client_id: String = st_client_id
-    let client_secret: String = st_client_secret
+    // credentials inside Constants
+    let client_id: String = safetrek_client_id
+    let client_secret: String = safetrek_client_secret
     let redirect_uri: String = "companion://oauth"
     
     override func viewDidLoad() {
         super.viewDidLoad()
         // for debugging purposes
-//        do {
-//            print("======== DELETING REFRESH TOKEN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
-//            print("======== DELETING ACCESS TOKEN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
-//            print("======== DELETING EXPIRES IN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
-//        } catch {
-//            print("======== UNABLE TO DELETE TOKENS ========")
-//        }
+        do {
+            print("======== DELETING REFRESH TOKEN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
+            print("======== DELETING ACCESS TOKEN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
+            print("======== DELETING EXPIRES IN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
+        } catch {
+            print("======== UNABLE TO DELETE TOKENS ========")
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -155,14 +155,14 @@ class UserAuthViewController: UIViewController {
                 try Locksmith.saveData(data: ["access_token": self.access_token!], forUserAccount: "user_access")
                 try Locksmith.saveData(data: ["expires_in": self.expires_in!], forUserAccount: "user_expire")
                 UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
-                // need to move this outside
-                self.toBases()
             } catch {
                 let alert = UIUtils.createAlert(title: "Error", message: "Could not save credentials. Try loggin in again on a different session.", details: nil)
                 self.present(alert, animated: true, completion: nil)
             }
+            DispatchQueue.main.async {
+                self.toBases()
+            }
         }
         task.resume()
-//        self.toBases()
     }
 }
