@@ -7,3 +7,9 @@
 //
 
 import Foundation
+
+struct ErrorResponse: Decodable {
+    let code: Int
+    let message: String
+    let details: String
+}

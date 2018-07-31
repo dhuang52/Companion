@@ -23,6 +23,7 @@ func getQueryStringParameter(url: String, param: String) -> String? {
 
 class UserAuthViewController: UIViewController {
     
+    let urls = devURLs()
     var authSession: SFAuthenticationSession?
     var access_token: String?
     var refresh_token: String?
@@ -36,16 +37,16 @@ class UserAuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // for debugging purposes
-//        do {
-//            print("======== DELETING REFRESH TOKEN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
-//            print("======== DELETING ACCESS TOKEN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
-//            print("======== DELETING EXPIRES IN ========")
-//            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
-//        } catch {
-//            print("======== UNABLE TO DELETE TOKENS ========")
-//        }
+        do {
+            print("======== DELETING REFRESH TOKEN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
+            print("======== DELETING ACCESS TOKEN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
+            print("======== DELETING EXPIRES IN ========")
+            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
+        } catch {
+            print("======== UNABLE TO DELETE TOKENS ========")
+        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -70,8 +71,8 @@ class UserAuthViewController: UIViewController {
             let scope: String = "openid%20phone%20offline_access"
             let response_type: String = "code"
             
-            let url: String = "https://account-sandbox.safetrek.io/authorize?client_id=" + client_id + "&scope=" +
-                scope + "&response_type=" + response_type + "&redirect_uri=" + redirect_uri
+            let url: String = "\(urls.authorize)?client_id=\(client_id)&scope=\(scope)&response_type=\(response_type)&redirect_uri=\(redirect_uri)"
+
             guard let authURL = URL(string: url) else {
                 fatalError("Could not convert to URL when authenticating user")
             }
@@ -109,8 +110,9 @@ class UserAuthViewController: UIViewController {
  */
     
     //MARK: Private Functions
-    private func createAlert(message: String) {
-        let alert = UIAlertController(title: "Alert", message: message, preferredStyle: UIAlertControllerStyle.alert)
+    private func createAlert(title: String, message: String, details: String?) {
+        let formattedMessage = details != nil ? "\(message). \(details!)." : "\(message)."
+        let alert = UIAlertController(title: title, message: formattedMessage, preferredStyle: UIAlertControllerStyle.alert)
         alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
             switch action.style{
             case .default:
@@ -125,7 +127,7 @@ class UserAuthViewController: UIViewController {
     
     private func getAccessToken(authorizationCode: String) {
         // STEP 3: RETRIEVING AN ACCESS TOKEN
-        let url = URL(string: "https://login-sandbox.safetrek.io/oauth/token")
+        let url = URL(string: urls.tokens)
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -150,14 +152,17 @@ class UserAuthViewController: UIViewController {
                 print("Data is empty")
                 return
             }
-            guard let tokensjson = try? JSONDecoder().decode(Tokens.self, from: data) else {
-                self.createAlert(message: "Could not get response from Noonlight")
-                return
+            if let tokensjson = try? JSONDecoder().decode(Tokens.self, from: data) {
+                self.access_token = tokensjson.access_token
+                self.refresh_token = tokensjson.refresh_token
+                self.expires_in = tokensjson.expires_in
+            } else {
+                guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+                    fatalError("Received an unexpected JSON format")
+                }
+                self.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
             }
             
-            self.access_token = tokensjson.access_token
-            self.refresh_token = tokensjson.refresh_token
-            self.expires_in = tokensjson.expires_in
             do {
                 print("============== SAVING TOKENS TO KEYCHAIN ==============")
                 try Locksmith.saveData(data: ["refresh_token": self.refresh_token!], forUserAccount: "user_refresh")
@@ -167,7 +172,7 @@ class UserAuthViewController: UIViewController {
                 // need to move this outside
                 self.toBases()
             } catch {
-                self.createAlert(message: "Could not save credentials");
+                self.createAlert(title: "Error",message: "Could not save credentials", details: nil);
             }
         }
         task.resume()
