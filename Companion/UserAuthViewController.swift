@@ -37,16 +37,16 @@ class UserAuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // for debugging purposes
-        do {
-            print("======== DELETING REFRESH TOKEN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
-            print("======== DELETING ACCESS TOKEN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
-            print("======== DELETING EXPIRES IN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
-        } catch {
-            print("======== UNABLE TO DELETE TOKENS ========")
-        }
+//        do {
+//            print("======== DELETING REFRESH TOKEN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
+//            print("======== DELETING ACCESS TOKEN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
+//            print("======== DELETING EXPIRES IN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
+//        } catch {
+//            print("======== UNABLE TO DELETE TOKENS ========")
+//        }
     }
 
     override func didReceiveMemoryWarning() {
@@ -110,21 +110,6 @@ class UserAuthViewController: UIViewController {
  */
     
     //MARK: Private Functions
-    private func createAlert(title: String, message: String, details: String?) {
-        let formattedMessage = details != nil ? "\(message). \(details!)." : "\(message)."
-        let alert = UIAlertController(title: title, message: formattedMessage, preferredStyle: UIAlertControllerStyle.alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-            switch action.style{
-            case .default:
-                print("default")
-            case .cancel:
-                print("cancel")
-            case .destructive:
-                print("destructive")
-            }}))
-        self.present(alert, animated: true, completion: nil)
-    }
-    
     private func getAccessToken(authorizationCode: String) {
         // STEP 3: RETRIEVING AN ACCESS TOKEN
         let url = URL(string: urls.tokens)
@@ -160,7 +145,8 @@ class UserAuthViewController: UIViewController {
                 guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
                     fatalError("Received an unexpected JSON format")
                 }
-                self.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
+                let alert = UIUtils.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
+                self.present(alert, animated: true, completion: nil)
             }
             
             do {
@@ -172,7 +158,8 @@ class UserAuthViewController: UIViewController {
                 // need to move this outside
                 self.toBases()
             } catch {
-                self.createAlert(title: "Error",message: "Could not save credentials", details: nil);
+                let alert = UIUtils.createAlert(title: "Error", message: "Could not save credentials. Try loggin in again on a different session.", details: nil)
+                self.present(alert, animated: true, completion: nil)
             }
         }
         task.resume()
