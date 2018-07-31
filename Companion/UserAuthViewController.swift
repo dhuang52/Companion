@@ -156,7 +156,7 @@ class UserAuthViewController: UIViewController {
                 try Locksmith.saveData(data: ["expires_in": self.expires_in!], forUserAccount: "user_expire")
                 UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
             } catch {
-                let alert = UIUtils.createAlert(title: "Error", message: "Could not save credentials. Try loggin in again on a different session.", details: nil)
+                let alert = UIUtils.createAlert(title: "Error", message: "Could not save your credentials. Try loggin in again on a different session.", details: nil)
                 self.present(alert, animated: true, completion: nil)
             }
             DispatchQueue.main.async {
