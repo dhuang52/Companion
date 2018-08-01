@@ -23,7 +23,7 @@ class BaseViewController: UIViewController, UITextFieldDelegate {
     @IBOutlet weak var saveButton: UIBarButtonItem!
     @IBOutlet weak var goButton: UIButton!
     
-    var base: Base?
+    var base: Base!
     
     // Declare variables to hold address form values from Google Places
     var street_number: String = ""
@@ -43,19 +43,14 @@ class BaseViewController: UIViewController, UITextFieldDelegate {
         baseTitleTextField.layer.masksToBounds = true
         baseTitleTextField.layer.cornerRadius = 5
         
-        if let base = base {
-            baseTitleTextField.text = base.title
-            baseAddressLabel.text = base.address
-            if base.city == "" || base.state == "" {
-                baseZipCityStateLabel.text = base.zip!
-            } else {
-                baseZipCityStateLabel.text = base.zip! + " " + base.city! + ", " + base.state!
-            }
+        baseTitleTextField.text = self.base.title
+        baseAddressLabel.text = self.base.address
+        if self.base.city == "" || self.base.state == "" {
+            baseZipCityStateLabel.text = self.base.zip!
         } else {
-            baseTitleTextField.text = "Empty Base"
-            baseAddressLabel.text = ""
-            baseZipCityStateLabel.text = ""
+            baseZipCityStateLabel.text = self.base.zip! + " " + self.base.city! + ", " + self.base.state!
         }
+
         if(!(baseAddressLabel.text != nil) && (baseZipCityStateLabel.text != nil)) {
             self.goButton.isEnabled = false
         }
@@ -83,20 +78,22 @@ class BaseViewController: UIViewController, UITextFieldDelegate {
     // This method lets you configure a view controller before it's presented.
     override func prepare(for segue: UIStoryboardSegue, sender: Any?) {
         super.prepare(for: segue, sender: sender)
-        base?.title = baseTitleTextField.text! // saves any title changes
+        base.title = baseTitleTextField.text! // saves any title changes
         if (segue.identifier ?? "" == "track") { // Base page -> track view controller
-            if let navigationController = segue.destination as? UINavigationController {
-                if let trakcingVC = navigationController.topViewController as? TrackingViewController {
-                    trakcingVC.base = base!
-                }
+            guard let navigationController = segue.destination as? UINavigationController else {
+                fatalError("Unexpected destination: \(segue.destination)")
             }
+            guard let trakcingVC = navigationController.topViewController as? TrackingViewController else {
+                fatalError("Unexpected View Controller: \(segue.destination)")
+            }
+            trakcingVC.base = base
         }
     }
     
     //MARK: Action
     @IBAction func cancel(_ sender: UIBarButtonItem) {
         self.navigationController?.popToRootViewController(animated: true)
-        baseTitleTextField.text = base?.title
+        baseTitleTextField.text = base.title
     }
     
     @IBAction func editBase(_ sender: UIButton) {
@@ -116,21 +113,21 @@ class BaseViewController: UIViewController, UITextFieldDelegate {
 
     // Populate the address form fields.
     func fillAddressForm() {
-        base?.address = street_number + " " + route
-        base?.city = locality
-        base?.state = administrative_area_level_1
-        base?.placeID = placeID
+        base.address = street_number + " " + route
+        base.city = locality
+        base.state = administrative_area_level_1
+        base.placeID = placeID
         if postal_code_suffix != "" {
-            base?.zip = postal_code + "-" + postal_code_suffix
+            base.zip = postal_code + "-" + postal_code_suffix
         } else {
-            base?.zip = postal_code
+            base.zip = postal_code
         }
-        baseAddressLabel.text = base?.address
+        baseAddressLabel.text = base.address
         
-        if base?.city == "" || base?.state == "" {
-            baseZipCityStateLabel.text = (base?.zip)!
+        if base.city == "" || base.state == "" {
+            baseZipCityStateLabel.text = (base.zip)!
         } else {
-            baseZipCityStateLabel.text = (base?.zip)! + " " + (base?.city)! + ", " + (base?.state)! // ZIP City, State
+            baseZipCityStateLabel.text = (base.zip)! + " " + (base.city)! + ", " + (base.state)! // ZIP City, State
         }
         
         // Clear values for next time.

@@ -11,4 +11,6 @@ import Foundation
 struct devURLs {
     var authorize = "https://account-sandbox.safetrek.io/authorize"
     var tokens = "https://login-sandbox.safetrek.io/oauth/token"
+    var alarm = "https://api-sandbox.safetrek.io/v1/alarms"
+    var refresh = "https://login-sandbox.safetrek.io/oauth/token"
 }

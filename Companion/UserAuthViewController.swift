@@ -37,16 +37,16 @@ class UserAuthViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // for debugging purposes
-        do {
-            print("======== DELETING REFRESH TOKEN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
-            print("======== DELETING ACCESS TOKEN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
-            print("======== DELETING EXPIRES IN ========")
-            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
-        } catch {
-            print("======== UNABLE TO DELETE TOKENS ========")
-        }
+//        do {
+//            print("======== DELETING REFRESH TOKEN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_refresh")
+//            print("======== DELETING ACCESS TOKEN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_access")
+//            print("======== DELETING EXPIRES IN ========")
+//            try Locksmith.deleteDataForUserAccount(userAccount: "user_expire")
+//        } catch {
+//            print("======== UNABLE TO DELETE TOKENS ========")
+//        }
     }
 
     override func didReceiveMemoryWarning() {

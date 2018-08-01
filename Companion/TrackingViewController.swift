@@ -47,6 +47,7 @@ class TrackingViewController: UIViewController {
     var didNotArrive: Bool = false
     var alarm: Alarm?
     
+    let urls = devURLs()
     let locationManager = CLLocationManager()
     
     override func viewDidLoad() {
@@ -106,7 +107,6 @@ class TrackingViewController: UIViewController {
     
     //MARK: Private Functions
     private func startTracking() {
-        // locationManager.requestLocation()
         // need to put guards around this, not safe
         base?.getDuration(originLat: self.lattitude!, originLong: self.longitude!, completion: { (duration) -> Void in
             let durationSec: Double = duration.value
@@ -115,15 +115,16 @@ class TrackingViewController: UIViewController {
     }
     
     // will create a handler for this function soon
-    private func createAlarm() -> Bool {
+    private func createAlarm() {
         print("========== createAlarm ==========")
         guard let lat = self.lattitude else {
-            return false
+            fatalError("Unable to get lattitude")
         }
         guard let lng = self.longitude else {
-            return false
+            fatalError("Unable to get longitude")
         }
-        let url = URL(string: "https://api-sandbox.safetrek.io/v1/alarms")
+        
+        let url = URL(string: urls.alarm)
         // in event of road accident, Police and Medical services seem most appropriate
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
@@ -140,56 +141,56 @@ class TrackingViewController: UIViewController {
                 "accuracy": 5
             ]
         ]
-        let access_dict = Locksmith.loadDataForUserAccount(userAccount: "user_access")
-        if let access_token = access_dict!["access_token"] as? String {
-            print("========== CONVERTED TO STRING ==========")
-            print(access_token)
-            request.addValue("Bearer " + access_token, forHTTPHeaderField: "Authorization")
+        
+        guard let access_token = KeychainUtils.getAccessToken() else {
+            fatalError("Unable to get access token")
         }
+        request.addValue("Bearer \(access_token)", forHTTPHeaderField: "Authorization")
+
         let alarmData = try? JSONSerialization.data(withJSONObject: params, options: [])
         request.httpBody = alarmData
-        var requestSuccess = false
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
             guard error == nil else {
-                requestSuccess = false
                 print(error!)
                 return
             }
             guard let data = data else {
-                requestSuccess = false
                 print("Data is empty")
                 return
             }
-            guard let tokensjson = try? JSONDecoder().decode(Alarm.self, from: data) else {
-                requestSuccess = false
-                return
+            
+            if let tokensjson = try? JSONDecoder().decode(Alarm.self, from: data) {
+                self.alarm = tokensjson
+                print(self.alarm!.id)
+                print(tokensjson)
+            } else {
+                guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+                    fatalError("Received an unexpected JSON format")
+                }
+                let alert = UIUtils.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
+                self.present(alert, animated: true, completion: nil)
             }
-            // should just use normal try with catch block
-            self.alarm = try? JSONDecoder().decode(Alarm.self, from: data)
-            print(self.alarm!.id)
-            requestSuccess = true
-            print(tokensjson)
         }
         task.resume()
-        return requestSuccess
     }
     
     private func cancelAlarm() {
-        let url = URL(string: "https://api-sandbox.safetrek.io/v1/alarms/" + self.alarm!.id + "/status")
+        let url = URL(string: "\(urls.alarm)/\(self.alarm!.id)/status")
         var request = URLRequest(url: url!)
         request.httpMethod = "PUT"
-        let access_dict = Locksmith.loadDataForUserAccount(userAccount: "user_access")
-        if let access_token = access_dict!["access_token"] as? String {
-            print("========== CONVERTED TO STRING ==========")
-            print(access_token)
-            request.addValue("Bearer " + access_token, forHTTPHeaderField: "Authorization")
-        }
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        
         let params = [
             "status": "CANCELED"
         ]
-        let requestCancel = try? JSONSerialization.data(withJSONObject: params, options: [])
+        
+        guard let access_token = KeychainUtils.getAccessToken() else {
+            fatalError("Unable to get access token")
+        }
+        request.addValue("Bearer \(access_token)", forHTTPHeaderField: "Authorization")
+        
+        guard let requestCancel = try? JSONSerialization.data(withJSONObject: params, options: []) else {
+            fatalError("Unable to convert PUT request body into JSON")
+        }
         request.httpBody = requestCancel
         
         let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
@@ -201,31 +202,41 @@ class TrackingViewController: UIViewController {
                 print("Data is empty")
                 return
             }
-            guard let json = try? JSONSerialization.jsonObject(with: data, options: []) else {
-                fatalError("Could not convert response to JSON");
+            if let canceljson = try? JSONSerialization.jsonObject(with: data, options: []) {
+                print("CANCELED")
+                print(canceljson)
+            } else {
+                guard let canceljson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+                    fatalError("Received an unexpected JSON format")
+                }
+                let alert = UIUtils.createAlert(title: "Error \(canceljson.code)", message: canceljson.message, details: canceljson.details)
+                self.present(alert, animated: true, completion: nil)
             }
-            print("CANCELED")
-            print(json)
         }
         task.resume()
     }
     
     private func getNewAccessToken() {
         print("========== getNewAccessToken ==========")
-        let url = URL(string: "https://login-sandbox.safetrek.io/oauth/token")
+        let url = URL(string: urls.refresh)
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let refresh_dict = Locksmith.loadDataForUserAccount(userAccount: "user_refresh")
-        guard let refresh_token = refresh_dict!["refresh_token"] as? String else {
-            fatalError("Could not convert refresh_token to string inside getNewAccessToken")
+        guard let refresh_token = KeychainUtils.getRefreshToken() else {
+            fatalError("Unable to get refresh token")
         }
+        
         let params = [
             "grant_type": "refresh_token",
             "client_id": safetrek_client_id,
             "client_secret": safetrek_client_secret,
             "refresh_token": refresh_token
         ]
+        
+//        let refresh_dict = Locksmith.loadDataForUserAccount(userAccount: "user_refresh")
+//        guard let refresh_token = refresh_dict!["refresh_token"] as? String else {
+//            fatalError("Could not convert refresh_token to string inside getNewAccessToken")
+//        }
         let accessTokenRequest = try? JSONSerialization.data(withJSONObject: params, options: [])
         request.httpBody = accessTokenRequest
         
@@ -244,6 +255,8 @@ class TrackingViewController: UIViewController {
                 try Locksmith.updateData(data: ["expires_in": tokensjson.expires_in], forUserAccount: "user_expire")
             } catch {
                 print("========= COULD NOT UPDATE TOKENS =========")
+                let alert = UIUtils.createAlert(title: "Error", message: "Could not refresh your access token. Try loggin in again on a different session.", details: nil)
+                self.present(alert, animated: true, completion: nil)
             }
             self.createAlarm()
         }

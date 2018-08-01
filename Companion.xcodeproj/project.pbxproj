@@ -10,6 +10,7 @@
 		9294B1970FF4EE0287A3CF0C /* libPods-Companion.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 093B16A8B00EA66885C44BCB /* libPods-Companion.a */; };
 		A51D6D0320827CF4001E6FF4 /* BaseViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A51D6D0220827CF4001E6FF4 /* BaseViewController.swift */; };
 		A53A40F7210817C500A75A4B /* Credentials.swift in Sources */ = {isa = PBXBuildFile; fileRef = A53A40F6210817C500A75A4B /* Credentials.swift */; };
+		A560FE4B21115BC5005B512B /* KeychainUtils.swift in Sources */ = {isa = PBXBuildFile; fileRef = A560FE4A21115BC5005B512B /* KeychainUtils.swift */; };
 		A56B5B75209190F500132FDE /* TrackingViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A56B5B74209190F500132FDE /* TrackingViewController.swift */; };
 		A573BFF220809AAF0064A7DE /* Base.swift in Sources */ = {isa = PBXBuildFile; fileRef = A573BFF120809AAF0064A7DE /* Base.swift */; };
 		A5A328FC211007A10059F7B0 /* devURLs.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5A328FB211007A10059F7B0 /* devURLs.swift */; };
@@ -41,6 +42,7 @@
 		6735E4DFA35FE23A8249890A /* Pods-Companion.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Companion.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Companion/Pods-Companion.debug.xcconfig"; sourceTree = "<group>"; };
 		A51D6D0220827CF4001E6FF4 /* BaseViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseViewController.swift; sourceTree = "<group>"; };
 		A53A40F6210817C500A75A4B /* Credentials.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Credentials.swift; sourceTree = "<group>"; };
+		A560FE4A21115BC5005B512B /* KeychainUtils.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeychainUtils.swift; sourceTree = "<group>"; };
 		A56B5B74209190F500132FDE /* TrackingViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackingViewController.swift; sourceTree = "<group>"; };
 		A573BFF120809AAF0064A7DE /* Base.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Base.swift; sourceTree = "<group>"; };
 		A5A328FB211007A10059F7B0 /* devURLs.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = devURLs.swift; sourceTree = "<group>"; };
@@ -110,6 +112,7 @@
 			isa = PBXGroup;
 			children = (
 				A5A32900211019340059F7B0 /* UIUitls.swift */,
+				A560FE4A21115BC5005B512B /* KeychainUtils.swift */,
 			);
 			path = utils;
 			sourceTree = "<group>";
@@ -310,6 +313,7 @@
 				A573BFF220809AAF0064A7DE /* Base.swift in Sources */,
 				A5A84FF620807F7400823195 /* ViewController.swift in Sources */,
 				A5A32901211019340059F7B0 /* UIUitls.swift in Sources */,
+				A560FE4B21115BC5005B512B /* KeychainUtils.swift in Sources */,
 				A56B5B75209190F500132FDE /* TrackingViewController.swift in Sources */,
 				A5A328FE211014060059F7B0 /* errorResponse.swift in Sources */,
 				A53A40F7210817C500A75A4B /* Credentials.swift in Sources */,

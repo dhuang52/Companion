@@ -74,6 +74,7 @@ class ViewController: UIViewController {
         } else if (selectedBaseButton.tag == senderButtonTag.Third.rawValue) {
             index = senderButtonTag.Third.rawValue
         }
+        // The user used to be able to add Bases, but this feture is gone now
         if index < bases.count {
             baseDetailViewController.base = bases[index]
         } else {
