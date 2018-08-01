@@ -23,14 +23,15 @@ func getQueryStringParameter(url: String, param: String) -> String? {
 
 class UserAuthViewController: UIViewController {
     
+    let urls = devURLs()
     var authSession: SFAuthenticationSession?
     var access_token: String?
     var refresh_token: String?
     var expires_in: Int?
     
-    // UNSAFE
-    let client_id: String = st_client_id
-    let client_secret: String = st_client_secret
+    // credentials inside Constants
+    let client_id: String = safetrek_client_id
+    let client_secret: String = safetrek_client_secret
     let redirect_uri: String = "companion://oauth"
     
     override func viewDidLoad() {
@@ -70,8 +71,8 @@ class UserAuthViewController: UIViewController {
             let scope: String = "openid%20phone%20offline_access"
             let response_type: String = "code"
             
-            let url: String = "https://account-sandbox.safetrek.io/authorize?client_id=" + client_id + "&scope=" +
-                scope + "&response_type=" + response_type + "&redirect_uri=" + redirect_uri
+            let url: String = "\(urls.authorize)?client_id=\(client_id)&scope=\(scope)&response_type=\(response_type)&redirect_uri=\(redirect_uri)"
+
             guard let authURL = URL(string: url) else {
                 fatalError("Could not convert to URL when authenticating user")
             }
@@ -109,23 +110,9 @@ class UserAuthViewController: UIViewController {
  */
     
     //MARK: Private Functions
-    private func createAlert(message: String) {
-        let alert = UIAlertController(title: "Alert", message: message, preferredStyle: UIAlertControllerStyle.alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default, handler: { action in
-            switch action.style{
-            case .default:
-                print("default")
-            case .cancel:
-                print("cancel")
-            case .destructive:
-                print("destructive")
-            }}))
-        self.present(alert, animated: true, completion: nil)
-    }
-    
     private func getAccessToken(authorizationCode: String) {
         // STEP 3: RETRIEVING AN ACCESS TOKEN
-        let url = URL(string: "https://login-sandbox.safetrek.io/oauth/token")
+        let url = URL(string: urls.tokens)
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
@@ -150,27 +137,32 @@ class UserAuthViewController: UIViewController {
                 print("Data is empty")
                 return
             }
-            guard let tokensjson = try? JSONDecoder().decode(Tokens.self, from: data) else {
-                self.createAlert(message: "Could not get response from Noonlight")
-                return
+            if let tokensjson = try? JSONDecoder().decode(Tokens.self, from: data) {
+                self.access_token = tokensjson.access_token
+                self.refresh_token = tokensjson.refresh_token
+                self.expires_in = tokensjson.expires_in
+            } else {
+                guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+                    fatalError("Received an unexpected JSON format")
+                }
+                let alert = UIUtils.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
+                self.present(alert, animated: true, completion: nil)
             }
             
-            self.access_token = tokensjson.access_token
-            self.refresh_token = tokensjson.refresh_token
-            self.expires_in = tokensjson.expires_in
             do {
                 print("============== SAVING TOKENS TO KEYCHAIN ==============")
                 try Locksmith.saveData(data: ["refresh_token": self.refresh_token!], forUserAccount: "user_refresh")
                 try Locksmith.saveData(data: ["access_token": self.access_token!], forUserAccount: "user_access")
                 try Locksmith.saveData(data: ["expires_in": self.expires_in!], forUserAccount: "user_expire")
                 UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
-                // need to move this outside
-                self.toBases()
             } catch {
-                self.createAlert(message: "Could not save credentials");
+                let alert = UIUtils.createAlert(title: "Error", message: "Could not save your credentials. Try loggin in again on a different session.", details: nil)
+                self.present(alert, animated: true, completion: nil)
+            }
+            DispatchQueue.main.async {
+                self.toBases()
             }
         }
         task.resume()
-//        self.toBases()
     }
 }
