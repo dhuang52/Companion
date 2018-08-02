@@ -159,6 +159,7 @@ class TrackingViewController: UIViewController {
     }
     
     private func cancelAlarm() {
+        print("========== cancelAlarm ==========")
         let params = [
             "status": "CANCELED"
         ]
@@ -167,7 +168,7 @@ class TrackingViewController: UIViewController {
         }
         HTTPRequestUtils.request(requestType: "PUT", url: "\(urls.alarm)/\(self.alarm!.id)/status", body: cancelData, responseType: UpdateAlarmStatus.self, onFail: { (errorResponse) in
             self.onFail(errorResponse: errorResponse)
-        }) { (updateJson) in
+        }) { (updateJson) in // ON SUCCESS COMPLETION HANDLER
             print(updateJson.status)
         }
     }
@@ -176,7 +177,7 @@ class TrackingViewController: UIViewController {
         print("========== getNewAccessToken ==========")
         HTTPRequestUtils.refreshAccessToken(url: urls.refresh, responseType: RefreshToken.self, onFail: { (errorResponse) in
             self.onFail(errorResponse: errorResponse)
-        }) { (refreshJson) in
+        }) { (refreshJson) in // ON SUCCESS COMPLETION HANDLER
             do {
                 try Locksmith.updateData(data: ["access_token": refreshJson.access_token], forUserAccount: "user_access")
                 try Locksmith.updateData(data: ["expires_in": refreshJson.expires_in], forUserAccount: "user_expire")
