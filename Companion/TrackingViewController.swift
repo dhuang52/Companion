@@ -169,7 +169,7 @@ class TrackingViewController: UIViewController {
         HTTPRequestUtils.request(requestType: "PUT", url: "\(urls.alarm)/\(self.alarm!.id)/status", body: cancelData, responseType: UpdateAlarmStatus.self, onFail: { (errorResponse) in
             self.onFail(errorResponse: errorResponse)
         }) { (updateJson) in // ON SUCCESS COMPLETION HANDLER
-            print(updateJson.status)
+            print("Alarm cancel successful, status: ",updateJson.status)
         }
     }
     
@@ -227,7 +227,7 @@ extension TrackingViewController: CLLocationManagerDelegate {
                 let expire_dictionary = Locksmith.loadDataForUserAccount(userAccount: "user_expire")
                 if let expire_in = expire_dictionary!["expires_in"] as? Double {
                     // using 0 for debugging purposes replace with expire_in when finished debugging
-                    if( time_since > 0 ) {
+                    if( time_since > expire_in ) {
                         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
                         getNewAccessToken() // after refreshing access token, calls createAlarm within method
                     } else {
