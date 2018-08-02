@@ -174,49 +174,18 @@ class TrackingViewController: UIViewController {
     
     private func getNewAccessToken() {
         print("========== getNewAccessToken ==========")
-        let url = URL(string: urls.refresh)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        guard let refresh_token = KeychainUtils.getRefreshToken() else {
-            fatalError("Unable to get refresh token")
-        }
-        
-        let params = [
-            "grant_type": "refresh_token",
-            "client_id": safetrek_client_id,
-            "client_secret": safetrek_client_secret,
-            "refresh_token": refresh_token
-        ]
-        
-//        let refresh_dict = Locksmith.loadDataForUserAccount(userAccount: "user_refresh")
-//        guard let refresh_token = refresh_dict!["refresh_token"] as? String else {
-//            fatalError("Could not convert refresh_token to string inside getNewAccessToken")
-//        }
-        let accessTokenRequest = try? JSONSerialization.data(withJSONObject: params, options: [])
-        request.httpBody = accessTokenRequest
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print(error!)
-                return
-            }
-            guard let data = data else {
-                print("Data is empty")
-                return
-            }
-            let tokensjson = try! JSONDecoder().decode(RefreshToken.self, from: data)
+        HTTPRequestUtils.refreshAccessToken(url: urls.refresh, responseType: RefreshToken.self, onFail: { (errorResponse) in
+            self.onFail(errorResponse: errorResponse)
+        }) { (refreshJson) in
             do {
-                try Locksmith.updateData(data: ["access_token": tokensjson.access_token], forUserAccount: "user_access")
-                try Locksmith.updateData(data: ["expires_in": tokensjson.expires_in], forUserAccount: "user_expire")
+                try Locksmith.updateData(data: ["access_token": refreshJson.access_token], forUserAccount: "user_access")
+                try Locksmith.updateData(data: ["expires_in": refreshJson.expires_in], forUserAccount: "user_expire")
+                self.createAlarm()
             } catch {
-                print("========= COULD NOT UPDATE TOKENS =========")
                 let alert = UIUtils.createAlert(title: "Error", message: "Could not refresh your access token. Try loggin in again on a different session.", details: nil)
                 self.present(alert, animated: true, completion: nil)
             }
-            self.createAlarm()
         }
-        task.resume()
     }
     
     @objc private func checkLocation() {
@@ -256,7 +225,8 @@ extension TrackingViewController: CLLocationManagerDelegate {
                 let time_since = Date().timeIntervalSince1970 - UserDefaults.standard.double(forKey: "init_date")
                 let expire_dictionary = Locksmith.loadDataForUserAccount(userAccount: "user_expire")
                 if let expire_in = expire_dictionary!["expires_in"] as? Double {
-                    if( time_since > expire_in ) {
+                    // using 0 for debugging purposes replace with expire_in when finished debugging
+                    if( time_since > 0 ) {
                         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
                         getNewAccessToken() // after refreshing access token, calls createAlarm within method
                     } else {
