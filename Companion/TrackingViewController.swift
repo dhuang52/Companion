@@ -37,6 +37,10 @@ struct Alarm: Decodable {
     }
 }
 
+struct UpdateAlarmStatus: Decodable {
+    let status: Int
+}
+
 class TrackingViewController: UIViewController {
     
     @IBOutlet weak var arrived: UIButton!
@@ -106,6 +110,12 @@ class TrackingViewController: UIViewController {
     }
     
     //MARK: Private Functions
+    private func onFail(errorResponse: ErrorResponse) {
+        print("WHOOPS! Could not create the alarm")
+        let alert = UIUtils.createAlert(title: "Error \(errorResponse.code)", message: errorResponse.message, details: errorResponse.details)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
     private func startTracking() {
         // need to put guards around this, not safe
         base?.getDuration(originLat: self.lattitude!, originLong: self.longitude!, completion: { (duration) -> Void in
@@ -123,12 +133,6 @@ class TrackingViewController: UIViewController {
         guard let lng = self.longitude else {
             fatalError("Unable to get longitude")
         }
-        
-        let url = URL(string: urls.alarm)
-        // in event of road accident, Police and Medical services seem most appropriate
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
         let params = [
             "services" : [
                 "police" : true,
@@ -142,125 +146,47 @@ class TrackingViewController: UIViewController {
             ]
         ]
         
-        guard let access_token = KeychainUtils.getAccessToken() else {
-            fatalError("Unable to get access token")
+        guard let alarmData = try? JSONSerialization.data(withJSONObject: params, options: []) else {
+            fatalError("Could not convert parameters for Alarm request to JSON")
         }
-        request.addValue("Bearer \(access_token)", forHTTPHeaderField: "Authorization")
-
-        let alarmData = try? JSONSerialization.data(withJSONObject: params, options: [])
-        request.httpBody = alarmData
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print(error!)
-                return
-            }
-            guard let data = data else {
-                print("Data is empty")
-                return
-            }
-            
-            if let tokensjson = try? JSONDecoder().decode(Alarm.self, from: data) {
-                self.alarm = tokensjson
-                print(self.alarm!.id)
-                print(tokensjson)
-            } else {
-                guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
-                    fatalError("Received an unexpected JSON format")
-                }
-                let alert = UIUtils.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
-                self.present(alert, animated: true, completion: nil)
-            }
+        HTTPRequestUtils.request(requestType: "POST", url: urls.alarm, body: alarmData, responseType: Alarm.self, onFail: { (errorResponse) in
+            self.onFail(errorResponse: errorResponse)
+        }) { (alarmJson) in // ON SUCCESS COMPLETION HANDLER
+            print("HOORAY Alarm created")
+            print(alarmJson)
+            self.alarm = alarmJson
         }
-        task.resume()
     }
     
     private func cancelAlarm() {
-        let url = URL(string: "\(urls.alarm)/\(self.alarm!.id)/status")
-        var request = URLRequest(url: url!)
-        request.httpMethod = "PUT"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        print("========== cancelAlarm ==========")
         let params = [
             "status": "CANCELED"
         ]
-        
-        guard let access_token = KeychainUtils.getAccessToken() else {
-            fatalError("Unable to get access token")
+        guard let cancelData = try? JSONSerialization.data(withJSONObject: params, options: []) else {
+            fatalError("Could not convert parameters for Update Alarm request to JSON")
         }
-        request.addValue("Bearer \(access_token)", forHTTPHeaderField: "Authorization")
-        
-        guard let requestCancel = try? JSONSerialization.data(withJSONObject: params, options: []) else {
-            fatalError("Unable to convert PUT request body into JSON")
+        HTTPRequestUtils.request(requestType: "PUT", url: "\(urls.alarm)/\(self.alarm!.id)/status", body: cancelData, responseType: UpdateAlarmStatus.self, onFail: { (errorResponse) in
+            self.onFail(errorResponse: errorResponse)
+        }) { (updateJson) in // ON SUCCESS COMPLETION HANDLER
+            print("Alarm cancel successful, status: ",updateJson.status)
         }
-        request.httpBody = requestCancel
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print(error!)
-                return
-            }
-            guard let data = data else {
-                print("Data is empty")
-                return
-            }
-            if let canceljson = try? JSONSerialization.jsonObject(with: data, options: []) {
-                print("CANCELED")
-                print(canceljson)
-            } else {
-                guard let canceljson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
-                    fatalError("Received an unexpected JSON format")
-                }
-                let alert = UIUtils.createAlert(title: "Error \(canceljson.code)", message: canceljson.message, details: canceljson.details)
-                self.present(alert, animated: true, completion: nil)
-            }
-        }
-        task.resume()
     }
     
     private func getNewAccessToken() {
         print("========== getNewAccessToken ==========")
-        let url = URL(string: urls.refresh)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        guard let refresh_token = KeychainUtils.getRefreshToken() else {
-            fatalError("Unable to get refresh token")
-        }
-        
-        let params = [
-            "grant_type": "refresh_token",
-            "client_id": safetrek_client_id,
-            "client_secret": safetrek_client_secret,
-            "refresh_token": refresh_token
-        ]
-        
-//        let refresh_dict = Locksmith.loadDataForUserAccount(userAccount: "user_refresh")
-//        guard let refresh_token = refresh_dict!["refresh_token"] as? String else {
-//            fatalError("Could not convert refresh_token to string inside getNewAccessToken")
-//        }
-        let accessTokenRequest = try? JSONSerialization.data(withJSONObject: params, options: [])
-        request.httpBody = accessTokenRequest
-        
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print(error!)
-                return
-            }
-            guard let data = data else {
-                print("Data is empty")
-                return
-            }
-            let tokensjson = try! JSONDecoder().decode(RefreshToken.self, from: data)
+        HTTPRequestUtils.refreshAccessToken(url: urls.refresh, responseType: RefreshToken.self, onFail: { (errorResponse) in
+            self.onFail(errorResponse: errorResponse)
+        }) { (refreshJson) in // ON SUCCESS COMPLETION HANDLER
             do {
-                try Locksmith.updateData(data: ["access_token": tokensjson.access_token], forUserAccount: "user_access")
-                try Locksmith.updateData(data: ["expires_in": tokensjson.expires_in], forUserAccount: "user_expire")
+                try Locksmith.updateData(data: ["access_token": refreshJson.access_token], forUserAccount: "user_access")
+                try Locksmith.updateData(data: ["expires_in": refreshJson.expires_in], forUserAccount: "user_expire")
+                self.createAlarm()
             } catch {
-                print("========= COULD NOT UPDATE TOKENS =========")
                 let alert = UIUtils.createAlert(title: "Error", message: "Could not refresh your access token. Try loggin in again on a different session.", details: nil)
                 self.present(alert, animated: true, completion: nil)
             }
-            self.createAlarm()
         }
-        task.resume()
     }
     
     @objc private func checkLocation() {
@@ -300,6 +226,7 @@ extension TrackingViewController: CLLocationManagerDelegate {
                 let time_since = Date().timeIntervalSince1970 - UserDefaults.standard.double(forKey: "init_date")
                 let expire_dictionary = Locksmith.loadDataForUserAccount(userAccount: "user_expire")
                 if let expire_in = expire_dictionary!["expires_in"] as? Double {
+                    // using 0 for debugging purposes replace with expire_in when finished debugging
                     if( time_since > expire_in ) {
                         UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
                         getNewAccessToken() // after refreshing access token, calls createAlarm within method
