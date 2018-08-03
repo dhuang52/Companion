@@ -135,59 +135,5 @@ class UserAuthViewController: UIViewController {
                 self.present(alert, animated: true, completion: nil)
             }
         }
-        /*
-        let url = URL(string: urls.tokens)
-        var request = URLRequest(url: url!)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let params = [
-            "grant_type" : "authorization_code",
-            "code": authorizationCode,
-            "client_id": client_id,
-            "client_secret": client_secret,
-            "redirect_uri": redirect_uri
-        ]
-        guard let accessTokenRequest = try? JSONSerialization.data(withJSONObject: params, options: []) else {
-            fatalError("could not convert parameters to JSON")
-        }
-        request.httpBody = accessTokenRequest
-
-        let task = URLSession.shared.dataTask(with: request) { (data, response, error) in
-            guard error == nil else {
-                print(error!)
-                return
-            }
-            guard let data = data else {
-                print("Data is empty")
-                return
-            }
-            if let tokensjson = try? JSONDecoder().decode(Tokens.self, from: data) {
-                self.access_token = tokensjson.access_token
-                self.refresh_token = tokensjson.refresh_token
-                self.expires_in = tokensjson.expires_in
-            } else {
-                guard let tokensjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
-                    fatalError("Received an unexpected JSON format")
-                }
-                let alert = UIUtils.createAlert(title: "Error \(tokensjson.code)", message: tokensjson.message, details: tokensjson.details)
-                self.present(alert, animated: true, completion: nil)
-            }
-            
-            do {
-                print("============== SAVING TOKENS TO KEYCHAIN ==============")
-                try Locksmith.saveData(data: ["refresh_token": self.refresh_token!], forUserAccount: "user_refresh")
-                try Locksmith.saveData(data: ["access_token": self.access_token!], forUserAccount: "user_access")
-                try Locksmith.saveData(data: ["expires_in": self.expires_in!], forUserAccount: "user_expire")
-                UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
-            } catch {
-                let alert = UIUtils.createAlert(title: "Error", message: "Could not save your credentials. Try loggin in again on a different session.", details: nil)
-                self.present(alert, animated: true, completion: nil)
-            }
-            DispatchQueue.main.async {
-                self.toBases()
-            }
-        }
-        task.resume()
- */
     }
 }
