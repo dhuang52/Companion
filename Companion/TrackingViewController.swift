@@ -118,7 +118,10 @@ class TrackingViewController: UIViewController {
     
     private func startTracking() {
         // need to put guards around this, not safe
-        base?.getDuration(originLat: self.lattitude!, originLong: self.longitude!, completion: { (duration) -> Void in
+        base?.getDuration(originLat: self.lattitude!, originLong: self.longitude!, onFail: { () -> Void in
+            let alert = UIUtils.createAlert(title: "Error", message: "Could not get directions to your Base", details: nil)
+            self.present(alert, animated: true, completion: nil)
+        }, completion: { (duration) -> Void in
             let durationSec: Double = duration.value
             self.startTimer(timeInterval: 1) // for debugging purposes
         })

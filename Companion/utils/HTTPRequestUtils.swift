@@ -137,7 +137,7 @@ class HTTPRequestUtils {
         task.resume()
     }
     
-    static func directionsRequest(url: String, onFail: @escaping (ErrorResponse) -> Void, completion: @escaping (MapsResponse) -> Void) {
+    static func directionsRequest(url: String, onFail: @escaping () -> Void, completion: @escaping (MapsResponse) -> Void) {
         guard let requestURL = URL(string: url) else {
             return
         }
@@ -155,10 +155,7 @@ class HTTPRequestUtils {
             if let tokensjson = try? JSONDecoder().decode(MapsResponse.self, from: data) {
                 completion(tokensjson)
             } else {
-                guard let errorjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
-                    fatalError("Received an unexpected JSON format")
-                }
-                onFail(errorjson)
+                onFail()
             }
         }
         task.resume()
