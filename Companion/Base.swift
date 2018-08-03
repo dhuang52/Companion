@@ -34,7 +34,7 @@ class Base: NSObject {
         self.placeID = placeID
     }
     
-    func getDuration(originLat: Double, originLong: Double, completion: @escaping (MapsResponse.Routes.Legs.Duration) -> Void) {
+    func getDuration(originLat: Double, originLong: Double, onFail: @escaping () -> Void, completion: @escaping (MapsResponse.Routes.Legs.Duration) -> Void) {
         let url: String
         if let placeID = self.placeID {
             url = "\(devURLs().directions)/json?origin=\(String(originLat)),\(String(originLong))&destination=place_id:\(placeID)&key=\(google_api_key)"
@@ -45,8 +45,9 @@ class Base: NSObject {
             }
             url = "\(devURLs().directions)/json?origin=\(String(originLat)),\(String(originLong))&destination=\(formatAddress(address: address))&key=\(google_api_key)"
         }
-        HTTPRequestUtils.directionsRequest(url: url, onFail: { (errorResponse) in
-            print("COULD NOT MAKE DIRECTIONS API CALL")
+        HTTPRequestUtils.directionsRequest(url: url, onFail: { () in
+            // completion handler within completionhandler, messy, needs to be changed
+            onFail()
         }) { (directionsJson) in
             print(directionsJson)
             if (directionsJson.status == "OK") {
