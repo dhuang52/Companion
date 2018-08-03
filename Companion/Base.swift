@@ -31,57 +31,33 @@ class Base: NSObject {
         self.city = city ?? ""
         self.state = state ?? ""
         self.zip = zip ?? ""
-        self.placeID = placeID ?? ""
+        self.placeID = placeID
+    }
+    
+    func getDuration(originLat: Double, originLong: Double, completion: @escaping (MapsResponse.Routes.Legs.Duration) -> Void) {
+        let url: String
+        if let placeID = self.placeID {
+            url = "\(devURLs().directions)/json?origin=\(String(originLat)),\(String(originLong))&destination=place_id:\(placeID)&key=\(google_api_key)"
+            print(url)
+        } else {
+            guard let address = self.address else {
+                fatalError("Missing address and place ID")
+            }
+            url = "\(devURLs().directions)/json?origin=\(String(originLat)),\(String(originLong))&destination=\(formatAddress(address: address))&key=\(google_api_key)"
+        }
+        HTTPRequestUtils.directionsRequest(url: url, onFail: { (errorResponse) in
+            print("COULD NOT MAKE DIRECTIONS API CALL")
+        }) { (directionsJson) in
+            print(directionsJson)
+            if (directionsJson.status == "OK") {
+                // completion handler within completionhandler, messy, needs to be changed
+                completion(directionsJson.routes[0].legs[0].duration)
+            }
+        }
     }
     
     //MARK: Private Functions
     private func formatAddress(address: String)->String {
         return address.replacingOccurrences(of: " ", with: "+")
-    }
-    
-    func getDuration(originLat: Double, originLong: Double, completion: @escaping (MapsResponse.Routes.Legs.Duration) -> Void) {
-        var duration: MapsResponse.Routes.Legs.Duration?
-        var requestURL = ""
-        let key = google_api_key
-        if !((self.placeID?.isEmpty)!) { // use placeID
-            requestURL = "https://maps.googleapis.com/maps/api/directions/json?origin=" + String(originLat) + "," + String(originLong) + "&destination=place_id:" + (self.placeID!) + "&key=" + key
-        } else { // use actual address
-            requestURL = "https://maps.googleapis.com/maps/api/directions/json?origin=" + String(originLat) + "," +
-                String(originLong) + "&destination=" + formatAddress(address: self.address!) + "&key=" + key
-        }
-        
-        guard let url = URL(string: requestURL) else {
-            fatalError("Could not convert to URL")
-        }
-
-        let task = URLSession.shared.dataTask(with: url) { (data, response, error) in
-            guard let data = data else {
-                fatalError("Could not set data")
-            }
-            do {
-                let base = try JSONDecoder().decode(MapsResponse.self, from: data)
-                print("=============GOOGLE MAPPS API RESPONSE=============")
-                print(base)
-                print("=============STATUS=============")
-                print(base.status)
-                if base.status == "OK" {
-                    duration = base.routes[0].legs[0].duration
-                    completion(duration!)
-                } else {
-                    //                    var alertTitle: String = ""
-                    //                    var alertMessage: String = ""
-                    if base.status == "NOT_FOUND" {
-                        
-                    } else if base.status == "ZERO_RESULTS" {
-                        
-                    } else if base.status == "INVALID_REQUEST" {
-                        
-                    }
-                }
-            } catch let jsonErr {
-                print("Error serializing json", jsonErr)
-            }
-        }
-        task.resume()
     }
 }

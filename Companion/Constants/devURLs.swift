@@ -13,4 +13,5 @@ struct devURLs {
     var tokens = "https://login-sandbox.safetrek.io/oauth/token"
     var alarm = "https://api-sandbox.safetrek.io/v1/alarms"
     var refresh = "https://login-sandbox.safetrek.io/oauth/token"
+    var directions = "https://maps.googleapis.com/maps/api/directions" // /json?origin=
 }

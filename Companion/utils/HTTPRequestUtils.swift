@@ -100,7 +100,7 @@ class HTTPRequestUtils {
         task.resume()
     }
     
-    static func request<T: Decodable>(requestType: String, url: String, body: Data, responseType: T.Type, onFail: @escaping (ErrorResponse) -> Void, completion: @escaping (T) -> Void) {
+    static func request<T: Decodable>(requestType: String?, url: String, body: Data?, responseType: T.Type, onFail: @escaping (ErrorResponse) -> Void, completion: @escaping (T) -> Void) {
         guard let requestURL = URL(string: url) else {
             return
         }
@@ -126,6 +126,33 @@ class HTTPRequestUtils {
             }
 
             if let tokensjson = try? JSONDecoder().decode(responseType.self, from: data) {
+                completion(tokensjson)
+            } else {
+                guard let errorjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
+                    fatalError("Received an unexpected JSON format")
+                }
+                onFail(errorjson)
+            }
+        }
+        task.resume()
+    }
+    
+    static func directionsRequest(url: String, onFail: @escaping (ErrorResponse) -> Void, completion: @escaping (MapsResponse) -> Void) {
+        guard let requestURL = URL(string: url) else {
+            return
+        }
+        
+        let task = URLSession.shared.dataTask(with: requestURL) { (data, response, error) in
+            guard error == nil else {
+                print(error!)
+                return
+            }
+            guard let data = data else {
+                print("Data is empty")
+                return
+            }
+            
+            if let tokensjson = try? JSONDecoder().decode(MapsResponse.self, from: data) {
                 completion(tokensjson)
             } else {
                 guard let errorjson = try? JSONDecoder().decode(ErrorResponse.self, from: data) else {
