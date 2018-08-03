@@ -110,8 +110,32 @@ class UserAuthViewController: UIViewController {
  */
     
     //MARK: Private Functions
+    private func onFail(errorResponse: ErrorResponse) {
+        print("WHOOPS! Could get access token")
+        let alert = UIUtils.createAlert(title: "Error \(errorResponse.code)", message: errorResponse.message, details: errorResponse.details)
+        self.present(alert, animated: true, completion: nil)
+    }
+    
     private func getAccessToken(authorizationCode: String) {
         // STEP 3: RETRIEVING AN ACCESS TOKEN
+        HTTPRequestUtils.getAccessToken(url: urls.tokens, authorizationCode: authorizationCode, responseType: Tokens.self, onFail: { (errorResponse) in
+            self.onFail(errorResponse: errorResponse)
+        }) { (tokensJson) in
+            do {
+                print("============== SAVING TOKENS TO KEYCHAIN ==============")
+                try Locksmith.saveData(data: ["refresh_token": tokensJson.refresh_token], forUserAccount: "user_refresh")
+                try Locksmith.saveData(data: ["access_token": tokensJson.access_token], forUserAccount: "user_access")
+                try Locksmith.saveData(data: ["expires_in": tokensJson.expires_in], forUserAccount: "user_expire")
+                UserDefaults.standard.set(Date().timeIntervalSince1970, forKey: "init_date")
+                DispatchQueue.main.async {
+                    self.toBases()
+                }
+            } catch {
+                let alert = UIUtils.createAlert(title: "Error", message: "Could not save your credentials. Try loggin in again on a different session.", details: nil)
+                self.present(alert, animated: true, completion: nil)
+            }
+        }
+        /*
         let url = URL(string: urls.tokens)
         var request = URLRequest(url: url!)
         request.httpMethod = "POST"
@@ -164,5 +188,6 @@ class UserAuthViewController: UIViewController {
             }
         }
         task.resume()
+ */
     }
 }
