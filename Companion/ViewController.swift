@@ -41,7 +41,11 @@ class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadSamples()
+        if let savedBases = loadBases() {
+            bases += savedBases
+        } else {
+            loadSamples()
+        }
         updateButtonLabels()
     }
     
@@ -54,6 +58,7 @@ class ViewController: UIViewController {
         if let sourceViewController = sender.source as? BaseViewController, let base = sourceViewController.base {
             bases[selectedBaseIndex] = base
             updateButtonLabels()
+            saveBases()
         }
     }
 
@@ -118,5 +123,25 @@ class ViewController: UIViewController {
             title = "Empty Base"
         }
         baseTButton.setTitle(title, for: .normal)
+    }
+    
+    private func saveBases() {
+        do {
+            let data = try JSONEncoder().encode(self.bases)
+            try data.write(to: Base.ArchiveURL, options: [])
+        } catch {
+            fatalError(error.localizedDescription)
+        }
+    }
+    
+    private func loadBases()->[Base]? {
+        do {
+            let data = try Data(contentsOf: Base.ArchiveURL)
+            let posts = try JSONDecoder().decode([Base].self, from: data)
+            return posts
+        } catch {
+            print("nothing saved")
+        }
+        return nil
     }
 }
