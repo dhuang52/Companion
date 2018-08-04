@@ -9,7 +9,7 @@
 import UIKit
 import os.log
 
-class Base: NSObject {
+class Base: NSObject, Codable {
     //MARK: Properties
     var title: String
     var address: String?
@@ -17,6 +17,10 @@ class Base: NSObject {
     var state: String?
     var zip: String?
     var placeID: String?
+    
+    //MARK: Archiving Paths
+    static let DocumentsDirectory = FileManager().urls(for: .documentDirectory, in: .userDomainMask).first!
+    static let ArchiveURL = DocumentsDirectory.appendingPathComponent("bases")
     
     init?(title: String, address: String?, city: String?, state: String?, zip: String?, placeID: String?) {
         guard !title.isEmpty else {
