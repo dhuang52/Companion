@@ -135,13 +135,12 @@ class ViewController: UIViewController {
     }
     
     private func loadBases()->[Base]? {
-        do {
-            let data = try Data(contentsOf: Base.ArchiveURL)
-            let posts = try JSONDecoder().decode([Base].self, from: data)
-            return posts
-        } catch {
-            print("nothing saved")
+        guard let data = try? Data(contentsOf: Base.ArchiveURL) else {
+            return nil
         }
-        return nil
+        guard let posts = try? JSONDecoder().decode([Base].self, from: data) else {
+            return nil
+        }
+        return posts
     }
 }
